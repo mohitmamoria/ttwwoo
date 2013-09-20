@@ -4,3 +4,9 @@ body {
 .content {
   padding: 40px 15px;
 }
+.ttwwoo-pic {
+	display: block;
+	margin: auto;
+	padding: 30px;
+	border: 1px dotted #333;
+}

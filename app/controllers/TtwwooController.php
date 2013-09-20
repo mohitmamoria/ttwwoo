@@ -8,7 +8,7 @@ class TtwwooController extends BaseController {
 
 	public function __construct()
 	{
-		$this->paths['uploads'] = '../uploads';
+		$this->paths['uploads'] = 'uploads';
 		$this->paths['firsts'] = $this->paths['uploads'] . '/first';
 		$this->paths['seconds'] = $this->paths['uploads'] . '/second';
 		$this->paths['ttwwoos'] = $this->paths['uploads'] . '/ttwwoo';
@@ -38,36 +38,39 @@ class TtwwooController extends BaseController {
 		}
 
 		$first = Input::file('first');
-		$firstText = trim(Input::file('firstText')) != '' ? trim(Input::file('firstText')) : $this->texts['first'] ;
+		$firstText = trim(Input::get('firstText')) != '' ? trim(Input::get('firstText')) : $this->texts['first'] ;
 		$second = Input::file('second');
-		$secondText = trim(Input::file('secondText')) != '' ? trim(Input::file('secondText')) : $this->texts['second'] ;
-		$message = Input::file('message');
+		$secondText = trim(Input::get('secondText')) != '' ? trim(Input::get('secondText')) : $this->texts['second'] ;
+		$message = Input::get('message');
 
-		$firstName = $first->getClientOriginalName().Session::get('uid').time();
-		$secondName = $second->getClientOriginalName().Session::get('uid').time();
+		$firstName = Session::get('uid').'_'.time().'_'.$first->getClientOriginalName();
+		$secondName = Session::get('uid').'_'.time().'_'.$second->getClientOriginalName();
 		Input::file('first')->move($this->paths['firsts'], $firstName);
 		Input::file('second')->move($this->paths['seconds'], $secondName);
 
-		$first = Image::make($this->path['firsts'].'/'.$firstName)->resize(421.5, 350);
+		$first = Image::make($this->paths['firsts'].'/'.$firstName)->resize(421.5, 350);
 		$second = Image::make($this->paths['seconds'].'/'.$secondName)->resize(421.5, 350);
 
-		$ttwwooName = Session::get('uid').'_'.time().str_random(6).'jpg';
+		$ttwwooName = Session::get('uid').'_'.time().'_'.str_random(6).'.jpg';
 		$ttwwoo = Image::canvas(843, 403, '#ffffff')
 			->insert($first, 0, 50, 'left')
 			->insert($second, 421.5, 50, 'left')
 			->text($firstText, 100, 50, 32, '#333333', 0, 'eagle.ttf')
 			->text($secondText, 522, 50, 32, '#333333', 0, 'eagle.ttf')
-			->save($ttwwoos.'/'.$ttwwooName);
+			->save($this->paths['ttwwoos'].'/'.$ttwwooName);
 
-		$tid = $this->_saveTtwwooToUser(Session::get('uid'), $firstName, $firstText, $secondName, $secondText, $ttwwooName, $message);
+		$tid = $this->_saveTtwwooToUser(Cookie::get('uid'), $firstName, $firstText, $secondName, $secondText, $ttwwooName, $message);
 		Session::put('tid', $tid);
 
-		return View::make('ttwwoo.view')->with('ttwwoo', $this->_getTtwwoo($tid));
+		$ttwwoo = $this->_getTtwwoo($tid);
+		// $this->_shareTtwwoo($ttwwoo);
+
+		return View::make('ttwwoo.view')->with('ttwwoo', $ttwwoo);
 	}
 
 	public function getShare()
 	{
-		if(!Session::get('id'))
+		if(!Cookie::get('uid'))
 		{
 			return Redirect::to('login');
 		}
@@ -81,14 +84,14 @@ class TtwwooController extends BaseController {
 		$args[basename($this->paths['ttwwoos'].'/'.$ttwwoo['ttwwoo_name'])] = '@'.realpath($this->paths['ttwwoos'].'/'.$ttwwoo['ttwwoo_name']);
 
 		$ch = curl_init();
-		$url = 'https://graph.facebook.com/me/photos?access_token='.Session::get('token');
+		$url = 'https://graph.facebook.com/me/photos?access_token='.$this->_getAccessTokenByUser(Cookie::get('uid'));
 		curl_setopt($ch, CURLOPT_URL, $url);
 		curl_setopt($ch, CURLOPT_HEADER, false);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
 		$data = curl_exec($ch);
-
+		dd($data);
 		return Redirect::to('index')->with('success', array('Ttwwoo shared successfully. Make more now!'));
 	}
 
@@ -120,6 +123,25 @@ class TtwwooController extends BaseController {
 				return View::make('ttwwoo.login')->with('loginUrl', $fb->getAuthorizationUri()->getAbsoluteUri());
 			}
 		}
+	}
+
+	private function _shareTtwwoo($ttwwoo)
+	{
+		$args = array(
+			'message' => $ttwwoo['message']
+		);
+
+		$args[basename($this->paths['ttwwoos'].'/'.$ttwwoo['ttwwoo_name'])] = '@'.realpath($this->paths['ttwwoos'].'/'.$ttwwoo['ttwwoo_name']);
+
+		$ch = curl_init();
+		$url = 'https://graph.facebook.com/me/photos?access_token='.$this->_getAccessTokenByUser(Cookie::get('uid'));
+		curl_setopt($ch, CURLOPT_URL, $url);
+		curl_setopt($ch, CURLOPT_HEADER, false);
+		curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+		curl_setopt($ch, CURLOPT_POST, true);
+		curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
+		$data = curl_exec($ch);
+		dd($data);
 	}
 
 	private function _getUser()

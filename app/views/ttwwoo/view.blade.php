@@ -7,5 +7,7 @@
 		@endforeach
 	@endif
 
-	<img src="{{$ttwwoo['path']}}" />
+	<img src="{{asset($ttwwoo['path'])}}" alt="{{$ttwwoo['message']}}" class="ttwwoo-pic"/>
+	<br/><br/>
+	<a href="/share" class="btn btn-primary btn-lg btn-block">Share with your friends</a>
 @stop
