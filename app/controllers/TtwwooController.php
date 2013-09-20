@@ -45,7 +45,7 @@ class TtwwooController extends BaseController {
 
 		$firstName = $first->getClientOriginalName().Session::get('uid').time();
 		$secondName = $second->getClientOriginalName().Session::get('uid').time();
-		Input::file('first')->move($this->path['firsts'], $firstName);
+		Input::file('first')->move($this->paths['firsts'], $firstName);
 		Input::file('second')->move($this->paths['seconds'], $secondName);
 
 		$first = Image::make($this->path['firsts'].'/'.$firstName)->resize(421.5, 350);
@@ -62,7 +62,7 @@ class TtwwooController extends BaseController {
 		$tid = $this->_saveTtwwooToUser(Session::get('uid'), $firstName, $firstText, $secondName, $secondText, $ttwwooName, $message);
 		Session::put('tid', $tid);
 
-		return View::make('ttwwoo.share');
+		return View::make('ttwwoo.view')->with('ttwwoo', $this->_getTtwwoo($tid));
 	}
 
 	public function getShare()
@@ -142,6 +142,17 @@ class TtwwooController extends BaseController {
 		return false;
 	}
 
+	private function _getTtwwoo($tid)
+	{
+		$ttwwoo = DB::table('ttwwoos')
+			->where('id', '=', $tid)
+			->select()
+			->first();
+
+		$ttwwoo['path'] = $this->paths['ttwwoos'].'/'.$ttwwoo['ttwwoo_name'];
+		return $ttwwoo;
+	}
+
 	private function _saveUser($user)
 	{
 		$uid = DB::table('users')->insertGetId(array(
@@ -190,22 +201,27 @@ class TtwwooController extends BaseController {
 	private function _isValidInput($input)
 	{
 		$rules = array(
-			'first' => 'image|mimes:jpeg,jpg,png',
-			'second' => 'image|mimes:jpeg,jpg,png',
+			'first' => 'required|image|mimes:jpeg,jpg,png',
+			'second' => 'required|image|mimes:jpeg,jpg,png',
 			'message' => 'required|max:200'
 		);
 
 		$messages = array(
-			'first' => 'First photo should be a photo with JPEG, JPG or PNG extension',
-			'second' => 'Second photo should be a photo with JPEG, JPG or PNG extension',
-			'message' => 'Message is required and should be below 200 characters',
+			'first.required' => 'First photo is required',
+			'first.image' => 'First photo should be an image',
+			'first.mimes' => 'First photo is not of any of these types: JPEG, JPG, PNG',
+			'second.required' => 'Second photo is required',
+			'second.image' => 'Second photo should be an image',
+			'second.mimes' => 'Second photo is not of any of these types: JPEG, JPG, PNG',
+			'message.required' => 'Message is required',
+			'message.max' => 'Message should be less than 200 characters'
 		);
 
-		$validator = Validator::make($input, $rules);
+		$validator = Validator::make($input, $rules, $messages);
 
 		if($validator->fails())
 		{
-			$this->errors = $validation->messages()->all();
+			$this->errors = $validator->messages()->all();
 			return false;
 		}
 		return true;
