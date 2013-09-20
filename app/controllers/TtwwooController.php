@@ -9,9 +9,9 @@ class TtwwooController extends BaseController {
 	public function __construct()
 	{
 		$this->paths['uploads'] = '../uploads';
-		$this->paths['firsts'] = $uploads . '/first';
-		$this->paths['seconds'] = $uploads . '/second';
-		$this->paths['ttwwoos'] = $uploads . '/ttwwoo';
+		$this->paths['firsts'] = $this->paths['uploads'] . '/first';
+		$this->paths['seconds'] = $this->paths['uploads'] . '/second';
+		$this->paths['ttwwoos'] = $this->paths['uploads'] . '/ttwwoo';
 
 		$this->texts['first'] = 'Before';
 		$this->texts['second'] = 'After';
@@ -24,7 +24,7 @@ class TtwwooController extends BaseController {
 		{
 			Session::put('uid', $user['id']);
 			Session::put('token', $user['access_token']);
-			return View::make('ttwwoo.make');
+			return View::make('ttwwoo.make')->with('user', $user);
 		}
 
 		return Redirect::to('login')->with('errors', array('Please login to use ttwwoo'));
@@ -101,8 +101,8 @@ class TtwwooController extends BaseController {
 			$token = $fb->requestAccessToken(Input::get('code'));
 
 			$user = json_decode($fb->request('/me'), true);
-			$user['oauth_provider'] => 'facebook';
-			$user['access_token'] => $token->getAccessToken();
+			$user['oauth_provider'] = 'facebook';
+			$user['access_token'] = $token->getAccessToken();
 			$uid = $this->_saveUser($user);
 
 			return Redirect::to('index')->withCookie(Cookie::forever('uid', $uid));
@@ -124,6 +124,8 @@ class TtwwooController extends BaseController {
 
 	private function _getUser()
 	{
+		$fb = OAuth::consumer('Facebook');
+
 		if(Cookie::get('uid'))
 		{
 			$accessToken = $this->_getAccessTokenByUser(Cookie::get('uid'));
@@ -137,7 +139,6 @@ class TtwwooController extends BaseController {
 				return $user;
 			}
 		}
-		
 		return false;
 	}
 
@@ -166,7 +167,7 @@ class TtwwooController extends BaseController {
 			'second_text' => $secondText,
 			'ttwwoo_name' => $ttwwooName,
 			'message' => $message,
-			'ip' => Request::getClientIp();
+			'ip' => Request::getClientIp(),
 			'created_at' => DB::raw('now()'),
 			'updated_at' => DB::raw('now()')
 		));
@@ -180,7 +181,7 @@ class TtwwooController extends BaseController {
 			->where('id', '=', Cookie::get('uid'))
 			->where('deleted_at', '=', '0000-00-00 00:00:00')
 			->select()
-			->get();
+			->first();
 		if($user) return $user['access_token'];
 
 		return false;
