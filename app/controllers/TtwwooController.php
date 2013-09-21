@@ -155,7 +155,8 @@ class TtwwooController extends BaseController {
 			{
 				$token = new OAuth\OAuth2\Token\StdOAuth2Token;
 				$token->setAccessToken($accessToken);
-				$fb->getStorage()->storeAccessToken('facebook', $token);
+				$token->setEndOfLife(time());
+				$fb->getStorage()->storeAccessToken('Facebook', $token);
 				$user = json_decode($fb->request('/me'), true);
 				$user['access_token'] = $accessToken;
 				return $user;
