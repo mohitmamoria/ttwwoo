@@ -3,7 +3,6 @@
 /app/config/local
 /app/config/deploy
 /app/config/packages/artdarek
-/public/uploads
 composer.phar
 composer.lock
 .DS_Store
