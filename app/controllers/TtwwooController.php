@@ -91,7 +91,6 @@ class TtwwooController extends BaseController {
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
 		$data = curl_exec($ch);
-		dd($data);
 		return Redirect::to('index')->with('success', array('Ttwwoo shared successfully. Make more now!'));
 	}
 
@@ -141,7 +140,6 @@ class TtwwooController extends BaseController {
 		curl_setopt($ch, CURLOPT_POST, true);
 		curl_setopt($ch, CURLOPT_POSTFIELDS, $args);
 		$data = curl_exec($ch);
-		dd($data);
 	}
 
 	private function _getUser()

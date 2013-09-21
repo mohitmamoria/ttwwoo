@@ -6,6 +6,11 @@
 			<div class="alert alert-danger"><strong>Aw Snap!</strong> {{$error}}</div>
 		@endforeach
 	@endif
+	@if(isset($success) and count($success) > 0)
+		@foreach($success as $message)
+			<div class="alert alert-success"><strong>Congrats!</strong> {{$message}}</div>
+		@endforeach
+	@endif
 	<h1>Hello {{$user['name']}}</h1>
 	<h3 class="text-muted">Start making a ttwwoo now</h3>
 	<div class="row well">
