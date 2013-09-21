@@ -1,7 +1,7 @@
 /bootstrap/compiled.php
 /vendor
 /app/config/local
-/app/config/artdarek
+/app/config/packages/artdarek
 /public/uploads
 composer.phar
 composer.lock
