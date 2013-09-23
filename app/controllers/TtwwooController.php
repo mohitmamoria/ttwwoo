@@ -55,8 +55,8 @@ class TtwwooController extends BaseController {
 		$ttwwoo = Image::canvas(843, 403, '#ffffff')
 			->insert($first, 0, 50, 'left')
 			->insert($second, 421.5, 50, 'left')
-			->text($firstText, 100, 50, 32, '#333333', 0, 'eagle.ttf')
-			->text($secondText, 522, 50, 32, '#333333', 0, 'eagle.ttf')
+			->text($firstText, 100, 50, 32, '#333333', 0, realpath('eagle.ttf'))
+			->text($secondText, 522, 50, 32, '#333333', 0, realpath('eagle.ttf'))
 			->save($this->paths['ttwwoos'].'/'.$ttwwooName);
 
 		$tid = $this->_saveTtwwooToUser(Cookie::get('uid'), $firstName, $firstText, $secondName, $secondText, $ttwwooName, $message);
